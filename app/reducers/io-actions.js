@@ -25,7 +25,8 @@ import {
   extractTitle,
   extractContainingDirectoryPath,
   getMetaFileLocationForFile,
-  getThumbFileLocationForFile
+  getThumbFileLocationForFile,
+  getXmpFileLocationForFile
 } from '../utils/paths';
 import {
 
@@ -59,9 +60,11 @@ const actions = {
       dispatch(AppActions.showNotification('Files moved successful'));
       const moveMetaJobs = [];
       moveJobs.map((job) => {
+        console.log(job);
         dispatch(AppActions.reflectDeleteEntry(job[0])); // TODO moved files should be added to the index, if the target dir in index
         moveMetaJobs.push([getMetaFileLocationForFile(job[0]), getMetaFileLocationForFile(job[1])]);
         moveMetaJobs.push([getThumbFileLocationForFile(job[0]), getThumbFileLocationForFile(job[1])]);
+        moveMetaJobs.push([getXmpFileLocationForFile(job[0]), getXmpFileLocationForFile(job[1])]);
         renameFilesPromise(moveMetaJobs).then(() => {
           console.log('Moving meta and thumbs successful');
           return true;

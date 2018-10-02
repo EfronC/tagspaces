@@ -35,6 +35,7 @@ import {
   extractFileName,
   getMetaDirectoryPath,
   getMetaFileLocationForFile,
+  getXmpFileLocationForFile,
   getThumbFileLocationForFile,
   extractParentDirectoryPath,
   extractTagsAsObjects
@@ -1175,9 +1176,12 @@ export const actions = {
           )
         );
         // Update sidecar file and thumb
+        console.log(filePath);
+        console.log(getXmpFileLocationForFile(filePath));
         renameFilesPromise([
           [getMetaFileLocationForFile(filePath), getMetaFileLocationForFile(newFilePath)],
-          [getThumbFileLocationForFile(filePath), getThumbFileLocationForFile(newFilePath)]
+          [getThumbFileLocationForFile(filePath), getThumbFileLocationForFile(newFilePath)],
+          [getXmpFileLocationForFile(filePath), getXmpFileLocationForFile(newFilePath)]
         ]).then(() => {
           console.log('Renaming meta file and thumb successfull for ' + filePath);
           return true;

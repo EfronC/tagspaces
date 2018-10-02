@@ -18,6 +18,9 @@
  */
 
 import fsextra from 'fs-extra';
+import XmpSidecar from './xmp-sidecar';
+import syncSidecar from './sync-sidecars'
+import * as paths from "path";
 import { extractParentDirectoryPath, getMetaDirectoryPath } from '../utils/paths';
 import { arrayBufferToBuffer } from '../utils/misc';
 import AppConfig from '../config';
@@ -295,6 +298,7 @@ export default class ElectronIO {
         // Read the .ts meta content
         if (!lite && containsMetaFolder) {
           metaFolderPath = getMetaDirectoryPath(path);
+          console.log(path);
           this.fs.readdir(metaFolderPath, (err, metaEntries) => {
             if (err) {
               console.log(
@@ -324,9 +328,15 @@ export default class ElectronIO {
                   const origFile = enhancedEntries.find(
                     result => result.name === fileNameWithoutMetaExt
                   );
+                  var fileNameXmp = fileNameWithoutMetaExt.split(".")[0];
+                  fileNameXmp = fileNameXmp + ".xmp";
+                  fileNameXmp = paths.join(path, fileNameXmp);
                   if (origFile) {
                     const metaFilePath =
                       metaFolderPath + AppConfig.dirSeparator + metaEntryName;
+                    var syncS = new syncSidecar(fileNameXmp, metaFilePath);
+                    var res = syncS.syncSidecars();
+                    console.log(res);
                     const metaFileObj = this.fs.readJsonSync(metaFilePath);
                     if (metaFileObj) {
                       enhancedEntries.map(enhancedEntry => {
@@ -584,6 +594,8 @@ export default class ElectronIO {
   ): Promise<any> => new Promise((resolve, reject) => {
     const fileSystem = this.fs;
     function saveFile(fPath, tContent, isNewFile) {
+      console.log(fPath);
+      console.log(tContent);
       fileSystem.writeFile(fPath, tContent, 'utf8', error => {
         if (error) {
           reject(error);

@@ -62,6 +62,21 @@ export function getThumbFileLocationForFile(entryPath: string) {
   return metaFolder + AppConfig.dirSeparator + extractFileName(entryPath) + AppConfig.thumbFileExt;
 }
 
+export function getXmpFileLocationForFile(path: string) {
+  if (path.split(".").length == 2) {
+    var pathXmp = path.split(".")[0];
+    pathXmp = pathXmp + ".xmp";
+  } else {
+    var pas = path.split(".");
+    var pathXmp = '';
+    for (var i = 0; i < (pas.length-1); i++) {
+      pathXmp = pathXmp + pas[i];
+    }
+    pathXmp = pathXmp + ".xmp";
+  }
+  return pathXmp;
+}
+
 export function getMetaFileLocationForDir(entryPath: string) {
   const metaFolder = getMetaDirectoryPath(entryPath);
   return metaFolder + AppConfig.dirSeparator + AppConfig.metaFolderFile;

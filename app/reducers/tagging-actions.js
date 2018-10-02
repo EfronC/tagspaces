@@ -33,6 +33,8 @@ import {
 } from '../services/utils-io';
 import { formatDateTime4Tag } from '../utils/misc';
 import AppConfig from '../config';
+import XmpSidecar from '../services/xmp-sidecar';
+import fsextra from 'fs-extra';
 
 const actions = {
   addTags: (paths: Array<string>, tags: Array<Tag>) => (
@@ -49,7 +51,28 @@ const actions = {
   ) => {
     const { settings } = getState();
     const processedTags = [];
+    if (path.split(".").length == 2) {
+      var pathXmp = path.split(".")[0];
+      pathXmp = pathXmp + ".xmp";
+    } else {
+      var pas = path.split(".");
+      var pathXmp = '';
+      for (var i = 0; i < (pas.length-1); i++) {
+        pathXmp = pathXmp + pas[i];
+      }
+      pathXmp = pathXmp + ".xmp";
+    }
+    if (fsextra.existsSync(pathXmp)) {
+      var mySidecar = new XmpSidecar(pathXmp);
+    }
     tags.map((pTag) => {
+      if (fsextra.existsSync(pathXmp)) {
+        if (!mySidecar.hasTag(pTag.title)) {
+          mySidecar.addTag(pTag.title);
+        }
+      } else {
+        console.log("XMP no existe");
+      }
       const tag = { ...pTag };
       if (tag.functionality && tag.functionality.length > 0) {
         tag.title = generateTagValue(tag.functionality);
@@ -58,6 +81,9 @@ const actions = {
       processedTags.push(tag);
       return true;
     });
+    if (fsextra.existsSync(pathXmp)) {
+      mySidecar.save();
+    }
     // TODO: Handle adding already added tags
     if (settings.persistTagsInSidecarFile) {
       // Handling adding tags in sidecar
@@ -125,6 +151,25 @@ const actions = {
         dispatch(AppActions.renameFile(path, containingDirectoryPath + AppConfig.dirSeparator + newFileName));
       }
     } else if (tag.type === 'sidecar') {
+      if (path.split(".").length == 2) {
+        var pathXmp = path.split(".")[0];
+        pathXmp = pathXmp + ".xmp";
+      } else {
+        var pas = path.split(".");
+        var pathXmp = '';
+        for (var i = 0; i < (pas.length-1); i++) {
+          pathXmp = pathXmp + pas[i];
+        }
+        pathXmp = pathXmp + ".xmp";
+      }
+      if (fsextra.existsSync(pathXmp)) {
+        var mySidecar = new XmpSidecar(pathXmp);
+        if (mySidecar.hasTag(tag.title)) {
+          mySidecar.removeTag(tag.title);
+          mySidecar.addTag(newTagTitle);
+          mySidecar.save();
+        }
+      }
       loadMetaDataPromise(path).then(fsEntryMeta => {
         fsEntryMeta.tags.map((sidecarTag) => {
           if (sidecarTag.title === tag.title) {
@@ -165,7 +210,28 @@ const actions = {
   ) => {
     const sidecarTags = [];
     let tagsInFilenameAvailable = false;
+    if (path.split(".").length == 2) {
+      var pathXmp = path.split(".")[0];
+      pathXmp = pathXmp + ".xmp";
+    } else {
+      var pas = path.split(".");
+      var pathXmp = '';
+      for (var i = 0; i < (pas.length-1); i++) {
+        pathXmp = pathXmp + pas[i];
+      }
+      pathXmp = pathXmp + ".xmp";
+    }
+    if (fsextra.existsSync(pathXmp)) {
+      var mySidecar = new XmpSidecar(pathXmp);
+    }
     tags.map(tag => {
+      if (fsextra.existsSync(pathXmp)) {
+        if (mySidecar.hasTag(tag.title)) {
+          mySidecar.removeTag(tag.title);
+        }
+      } else {
+        console.log("XMP no existe");
+      }
       if (tag.type === 'sidecar') {
         sidecarTags.push(tag.title);
       } else if (tag.type === 'plain') {
@@ -173,6 +239,9 @@ const actions = {
       }
       return true;
     });
+    if (fsextra.existsSync(pathXmp)) {
+      mySidecar.save();
+    }
     loadMetaDataPromise(path).then(fsEntryMeta => {
       const newTags = [];
       fsEntryMeta.tags.map((sidecarTag) => {
@@ -233,6 +302,24 @@ const actions = {
   removeAllTagsFromEntry: (path: string) => (
     dispatch: (actions: Object) => void,
   ) => {
+    if (path.split(".").length == 2) {
+      var pathXmp = path.split(".")[0];
+      pathXmp = pathXmp + ".xmp";
+    } else {
+      var pas = path.split(".");
+      var pathXmp = '';
+      for (var i = 0; i < (pas.length-1); i++) {
+        pathXmp = pathXmp + pas[i];
+      }
+      pathXmp = pathXmp + ".xmp";
+    }
+    if (fsextra.existsSync(pathXmp)) {
+      var mySidecar = new XmpSidecar(pathXmp);
+      for (var i = mySidecar.tags.length - 1; i >= 0; i--) {
+        mySidecar.removeTag(mySidecar.tags[i]);
+      }
+      mySidecar.save();
+    }
     loadMetaDataPromise(path).then(fsEntryMeta => {
       const updatedFsEntryMeta = {
         ...fsEntryMeta,
