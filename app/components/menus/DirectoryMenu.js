@@ -28,6 +28,7 @@ import AddExistingFileIcon from '@material-ui/icons/ExitToApp';
 import OpenFolderNativelyIcon from '@material-ui/icons/Launch';
 import AutoRenew from '@material-ui/icons/Autorenew';
 import NewFileIcon from '@material-ui/icons/InsertDriveFile';
+import Update from '@material-ui/icons/Update';
 import NewFolderIcon from '@material-ui/icons/CreateNewFolder';
 import RenameFolderIcon from '@material-ui/icons/FormatTextdirectionLToR';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
@@ -39,6 +40,7 @@ import AppConfig from '../../config';
 import i18n from '../../services/i18n';
 import { extractFileName, extractParentDirectoryPath } from '../../utils/paths'; // extractFileExtension
 import PlatformIO from '../../services/platform-io';
+import syncSidecar from '../../services/sync-sidecars';
 
 type Props = {
   open?: boolean,
@@ -77,6 +79,14 @@ class DirectoryMenu extends React.Component<Props, State> {
   };
 
   reloadDirectory = () => {
+    this.props.onClose();
+    this.props.loadDirectoryContent(this.props.directoryPath);
+  };
+
+  syncSides = () => {
+    console.log("Pressed");
+    var syncS = new syncSidecar();
+    var res = syncS.searchFolder(this.props.directoryPath);
     this.props.onClose();
     this.props.loadDirectoryContent(this.props.directoryPath);
   };
@@ -259,6 +269,14 @@ class DirectoryMenu extends React.Component<Props, State> {
                 <AutoRenew />
               </ListItemIcon>
               <ListItemText inset primary={i18n.t('core:reloadDirectory')} />
+            </MenuItem>
+          )}
+          {!this.props.perspectiveMode && (
+            <MenuItem data-tid="syncSidecars" onClick={this.syncSides}>
+              <ListItemIcon>
+                <Update />
+              </ListItemIcon>
+              <ListItemText inset primary={i18n.t('core:SyncSidecars')} />
             </MenuItem>
           )}
           {!this.props.isReadOnlyMode && (
