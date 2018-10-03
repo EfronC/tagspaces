@@ -5,6 +5,8 @@ import { extractParentDirectoryPath, getMetaDirectoryPath } from '../utils/paths
 import { arrayBufferToBuffer } from '../utils/misc';
 import AppConfig from '../config';
 import uuidv1 from 'uuid';
+import readdirp from 'readdirp';
+import readdir from 'readdir-enhanced';
 
 export default class syncSidecar {
     constructor(pathXmp = '.', pathJson = ".") {
@@ -37,30 +39,23 @@ export default class syncSidecar {
 
     searchFolder(path) {
     	console.log(path);
-    	fsextra.readdir(path, (err, files) => {
-    		if (err) {
-    			console.log("Error reading directory");
-    			return false;
-    		}
-
-    		if (files) {
-            	files.forEach(fileName => {
-            		if (!fsextra.lstatSync(paths.join(path, fileName)).isDirectory() && !fileName.endsWith(".xmp")){
-            			console.log(fileName);
-            			var fileNameXmp = fileName.split(".")[0];
-		                fileNameXmp = fileNameXmp + ".xmp";
-		                fileNameXmp = paths.join(path, fileNameXmp);
-		                if (fsextra.existsSync(fileNameXmp)) {
-		                	var metaFolder = paths.join(path, '.ts');
-		                	var fileNameJson = paths.join(metaFolder, fileName + AppConfig.metaFileExt);
-		                	this._filePathXmp = fileNameXmp;
-		                	this._filePathJson = fileNameJson;
-		                	this.syncSidecars();
-		                };
-            		}
-            	});
-            }
-    	});
+    	readdir.stream(path)
+		    .on('data', function(fileName) {})
+		    .on('file', function(fileName) { 
+			  	if (!fileName.endsWith(".xmp")){
+        			console.log(fileName);
+        			var fileNameXmp = fileName.split(".")[0];
+	                fileNameXmp = fileNameXmp + ".xmp";
+	                fileNameXmp = paths.join(path, fileNameXmp);
+	                if (fsextra.existsSync(fileNameXmp)) {
+	                	var metaFolder = paths.join(path, '.ts');
+	                	var fileNameJson = paths.join(metaFolder, fileName + AppConfig.metaFileExt);
+	                	this._filePathXmp = fileNameXmp;
+	                	this._filePathJson = fileNameJson;
+	                	this.syncSidecars();
+	                };
+        		} 
+        	}.bind(this));
     	return true;
     }
 
@@ -101,6 +96,7 @@ export default class syncSidecar {
 				if (differenceJson.length > 0) {
 					var updatedTagsJson = this.addTags(tagsJson, differenceJson, true);
 					console.log(updatedTagsJson);
+					console.log(this._filePathJson);
 					// /home/efrain/Documentos/Dev
 					fsextra.writeJsonSync(this._filePathJson, updatedTagsJson);
 				}

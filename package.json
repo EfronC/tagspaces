@@ -218,6 +218,7 @@
     "react-router-dom": "^4.3.1",
     "react-router-redux": "^5.0.0-alpha.6",
     "react-split-pane": "^0.1.68",
+    "readdir-enhanced": "https://github.com/JamesMessinger/readdir-enhanced.git",
     "redux": "^3.7.2",
     "redux-persist": "^4.8.2",
     "redux-thunk": "^2.2.0",

@@ -57,7 +57,7 @@ process.argv.forEach((arg, count) => {
 });
 
 if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
-  require('electron-debug')({ showDevTools: false });
+  require('electron-debug')({ showDevTools: true });
   const p = path.join(__dirname, '..', 'app', 'node_modules');
   require('module').globalPaths.push(p);
 }
