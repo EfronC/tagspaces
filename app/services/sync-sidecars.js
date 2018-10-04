@@ -5,7 +5,7 @@ import { extractParentDirectoryPath, getMetaDirectoryPath } from '../utils/paths
 import { arrayBufferToBuffer } from '../utils/misc';
 import AppConfig from '../config';
 import uuidv1 from 'uuid';
-import readdirp from 'readdirp';
+import through2 from 'through2';
 import readdir from 'readdir-enhanced';
 
 export default class syncSidecar {
@@ -26,7 +26,8 @@ export default class syncSidecar {
 						  "appName": "TagSpaces", // optional element, containing the name of the app, created this files
 						  "appVersionUpdated": "2.4.1", // optional element, containing the version of the app, which last changed the file
 						  "lastUpdated": "2016-06-24T12:22:38.560Z" // optional element
-						}
+						};
+		this._done = false;
     }
 
     get filePathJson() {
@@ -39,10 +40,12 @@ export default class syncSidecar {
 
     searchFolder(path) {
     	console.log(path);
-    	readdir.stream(path)
-		    .on('data', function(fileName) {})
-		    .on('file', function(fileName) { 
-			  	if (!fileName.endsWith(".xmp")){
+    	var that = this;
+    	console.log("Trabajo");
+    	var promise = endPromise => new Promise((resolve, reject) => {
+    		var stream = readdir.stream(path)
+			.pipe(through2.obj(function(fileName, enc, next) {
+			    if (!fsextra.lstatSync(paths.join(path, fileName)).isDirectory() && !fileName.endsWith(".xmp")){
         			console.log(fileName);
         			var fileNameXmp = fileName.split(".")[0];
 	                fileNameXmp = fileNameXmp + ".xmp";
@@ -50,13 +53,39 @@ export default class syncSidecar {
 	                if (fsextra.existsSync(fileNameXmp)) {
 	                	var metaFolder = paths.join(path, '.ts');
 	                	var fileNameJson = paths.join(metaFolder, fileName + AppConfig.metaFileExt);
-	                	this._filePathXmp = fileNameXmp;
-	                	this._filePathJson = fileNameJson;
-	                	this.syncSidecars();
+	                	that._filePathXmp = fileNameXmp;
+	                	that._filePathJson = fileNameJson;
+	                	that.syncSidecars();
 	                };
         		} 
-        	}.bind(this));
+			    this.push(fileName);
+			    next();
+			}))
+			.on('finish', function () {
+				resolve;
+				return true;
+			})});
+    	(async () => {
+    		await promise(true);
+    	}) ()
     	return true;
+    	// readdir.stream(path)
+		   //  .on('data', function(fileName) {})
+		   //  .on('file', function(fileName) { 
+			  // 	if (!fsextra.lstatSync(paths.join(path, fileName)).isDirectory() && !fileName.endsWith(".xmp")){
+     //    			console.log(fileName);
+     //    			var fileNameXmp = fileName.split(".")[0];
+	    //             fileNameXmp = fileNameXmp + ".xmp";
+	    //             fileNameXmp = paths.join(path, fileNameXmp);
+	    //             if (fsextra.existsSync(fileNameXmp)) {
+	    //             	var metaFolder = paths.join(path, '.ts');
+	    //             	var fileNameJson = paths.join(metaFolder, fileName + AppConfig.metaFileExt);
+	    //             	this._filePathXmp = fileNameXmp;
+	    //             	this._filePathJson = fileNameJson;
+	    //             	this.syncSidecars();
+	    //             };
+     //    		} 
+     //    	}.bind(this));
     }
 
     syncSidecars() {
