@@ -7,6 +7,7 @@ import AppConfig from '../config';
 import uuidv1 from 'uuid';
 import readdirp from 'readdirp';
 import readdir from 'readdir-enhanced';
+import through2 from 'through2';
 
 export default class syncSidecar {
     constructor(pathXmp = '.', pathJson = ".") {
@@ -39,6 +40,18 @@ export default class syncSidecar {
 
     searchFolder(path) {
     	console.log(path);
+  //   	var stream = readdirp({ root: path });
+		// stream
+		//   .on('warn', function (err) {
+		//     console.error('non-fatal error', err);
+		//     // optionally call stream.destroy() here in order to abort and cause 'close' to be emitted
+		//   })
+		//   .on('error', function (err) { console.error('fatal error', err); })
+		//   .pipe(through2.obj(function (entry, enc, next) {
+		//     console.log(entry);
+		//     this.push(entry);
+		//     next();
+		//   }));
     	readdir.stream(path)
 		    .on('data', function(fileName) {})
 		    .on('file', function(fileName) { 
@@ -55,7 +68,10 @@ export default class syncSidecar {
 	                	this.syncSidecars();
 	                };
         		} 
-        	}.bind(this));
+        	}.bind(this))
+        	.on('finish', function() {
+        		console.log("Fin");
+        	});
     	return true;
     }
 
